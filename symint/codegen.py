@@ -67,9 +67,9 @@ def _flatten(exprs: Any) -> Tuple[List[sp.Expr], Tuple[str, Any]]:
 
     Parameters
     ----------
-    exprs : sp.Expr, sp.Matrix, list, tuple or symfem Function
+    exprs : sp.Expr, sp.Matrix, list, tuple or object with ``as_sympy``
         What the generated function returns. Objects with an
-        ``as_sympy`` method (symfem functions) are converted to a Matrix.
+        ``as_sympy`` method are converted to a Matrix.
 
     Returns
     -------
@@ -83,7 +83,7 @@ def _flatten(exprs: Any) -> Tuple[List[sp.Expr], Tuple[str, Any]]:
     if isinstance(exprs, sp.MatrixBase):
         return list(exprs), ("matrix", exprs.shape)
     if hasattr(exprs, "as_sympy") and not isinstance(exprs, sp.Basic):
-        return _flatten(sp.Matrix(exprs.as_sympy()))  # symfem functions
+        return _flatten(sp.Matrix(exprs.as_sympy()))
     if isinstance(exprs, (list, tuple)):
         return [sp.sympify(e) for e in exprs], ("list", len(exprs))
     return [sp.sympify(exprs)], ("scalar", None)
@@ -291,7 +291,7 @@ def numpy_function(name: str,
     ----------
     name : str
         Function name.
-    exprs : sp.Expr, sp.Matrix, list, or symfem Function
+    exprs : sp.Expr, sp.Matrix, list, or object with ``as_sympy``
         What to return: a scalar, a numpy array of the matrix's shape, or
         a list.
     args : sequence

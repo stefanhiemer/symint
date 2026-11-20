@@ -5,11 +5,9 @@ domain.py -- build SymPy Integrals over common integration domains.
 from an integrand and a description of where it is integrated:
 
 - `chart_integral`: a coordinate-chart mapping with keys "limits" and
-  "volume_element" (as used by symbolic_qc.coordinates),
+  "volume_element" (e.g. spherical or prolate-spheroidal coordinates),
 - `simplex_integral`: the reference simplex, Duffy-collapsed onto the
-  unit cube,
-- `symfem_integral`: a symfem reference cell (duck-typed, symfem is not
-  imported), with simplices Duffy-collapsed by default.
+  unit cube.
 
 The Duffy collapse makes triangles and tetrahedra rectangular, so that
 the engine can separate the integral and choose the integration order
@@ -35,8 +33,7 @@ def chart_integral(expr: sp.Expr,
         Integrand in the chart's coordinates.
     chart : mapping
         With "limits" (list of (Symbol, lower, upper), innermost first)
-        and optionally "volume_element" (default 1), e.g. the charts of
-        symbolic_qc.coordinates.
+        and optionally "volume_element" (default 1).
 
     Returns
     -------
@@ -128,58 +125,3 @@ def simplex_integral(expr: sp.Expr,
     limits, jacobian, substitution = _duffy(variables, new)
     integrand = sp.sympify(expr).subs(substitution, simultaneous=True)
     return Integral(integrand * jacobian, *limits)
-
-
-def symfem_integral(expr: sp.Expr,
-                    reference: Any,
-                    physical: Sequence[Symbol] = None,
-                    dummy: Sequence[Symbol] = None,
-                    collapse: bool = True) -> Integral:
-    """
-    Integral of `expr` over a symfem reference cell.
-
-    Mirrors symfem's own ``ScalarFunction.integral``: the physical point
-    is origin + sum_i t_i axes_i, the limits are
-    ``reference.integration_limits(t)`` and the volume element is
-    ``reference.jacobian()``. Works for intervals, triangles,
-    quadrilaterals, tetrahedra, hexahedra, ...
-
-    Parameters
-    ----------
-    expr : sp.Expr
-        Integrand in the physical coordinates.
-    reference : symfem.references.Reference
-        The reference cell (only its public attributes are used).
-    physical : sequence of Symbol, optional
-        Physical coordinates appearing in `expr`; default symfem's
-        ``x, y, z`` (plain Symbols "x", "y", "z").
-    dummy : sequence of Symbol, optional
-        Integration variables; default symfem's ``t0, t1, t2``.
-    collapse : bool, optional
-        For triangles and tetrahedra, Duffy-collapse onto the unit square
-        / cube so the Integral is rectangular.
-
-    Returns
-    -------
-    sympy.Integral
-        Integral over the dummy (or, collapsed, the cube) variables,
-        volume element included.
-    """
-    tdim = reference.tdim
-    physical = list(physical or sp.symbols("x y z"))[:reference.gdim]
-    dummy = list(dummy or sp.symbols("t0 t1 t2"))[:tdim]
-    point = [sp.sympify(o) for o in reference.origin]
-    for ti, axis in zip(dummy, reference.axes):
-        point = [p + ti * sp.sympify(a) for p, a in zip(point, axis)]
-    substitution = dict(zip(physical, point))
-    volume = sp.sympify(reference.jacobian())
-    if collapse and getattr(reference, "name", None) in ("triangle",
-                                                         "tetrahedron"):
-        limits, jacobian, duffy = _duffy(dummy)
-        substitution = {x: e.subs(duffy, simultaneous=True)
-                        for x, e in substitution.items()}
-        volume *= jacobian
-    else:
-        limits = [tuple(lim) for lim in reference.integration_limits(dummy)]
-    integrand = sp.sympify(expr).subs(substitution, simultaneous=True)
-    return Integral(integrand * volume, *limits)

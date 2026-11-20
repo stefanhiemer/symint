@@ -595,8 +595,8 @@ def integrate(integral: Integral,
     Parameters
     ----------
     integral : sympy.Integral
-        The unevaluated integral, e.g. built with `chart_integral`,
-        `simplex_integral` or `symfem_integral`.
+        The unevaluated integral, e.g. built with `chart_integral`
+        or `simplex_integral`.
     algorithms : sequence of str, optional
         Tried in order for each variable no rule handles: "sympy" (native
         SymPy, keeps assumptions), "maxima", "fricas", "giac" (via Sage)

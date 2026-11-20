@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "symint"
+dynamic = ["version"]
+description = "Closed-form evaluation of multidimensional SymPy integrals, with NumPy/SciPy code generation."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Stefan Hiemer", email = "stefan.hiemer1995@gmail.com" }]
+keywords = ["sympy", "integration", "symbolic", "computer algebra", "quantum chemistry", "finite elements"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Operating System :: POSIX",
+]
+dependencies = [
+    "sympy>=1.12",
+    "passagemath-symbolics[maxima,fricas]",
+    "passagemath-repl",
+]
+
+[project.optional-dependencies]
+# Executing generated code (compile_function) and quadrature for leftover integrals.
+numeric = ["numpy>=1.24", "scipy>=1.10"]
+all = ["symint[numeric]"]
+test = ["symint[numeric]", "pytest>=7"]
+
+[tool.setuptools.packages.find]
+include = ["symint*"]
+
+[tool.setuptools.dynamic]
+version = { attr = "symint.__version__" }
+
+[tool.setuptools.package-data]
+symint = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "symint"]
+addopts = "--doctest-modules"

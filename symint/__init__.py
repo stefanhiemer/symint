@@ -11,10 +11,12 @@ SymPy ``Integral`` -- a partial result, never an exception -- and can be
 turned into NumPy/SciPy code (with quadrature for the leftover integrals)
 by `numpy_function`.
 
-It was written for integrals over quantum-chemistry basis functions
-(Gaussians, Slater-type and elliptic-coordinate functions, 1/r12 kernels)
-and finite-element integrands (polynomials and rationals on reference
-cells), but nothing in it is specific to either.
+The core package is general-purpose. Code tied to one application
+lives in context subpackages, which register their rules when imported:
+
+`symint.qc`
+    Quantum chemistry: the "azimuthal" rule for the azimuthal part of
+    1/r12 kernels (Bessel I_0 and elliptic K closed forms).
 
 Pipeline
 --------
@@ -51,26 +53,20 @@ functions build one from an integrand, volume element included:
     Over the unit d-simplex, Duffy-collapsed onto [0, 1]^d, which makes
     triangles and tetrahedra rectangular, so that separation and free
     choice of integration order apply.
-`symfem_integral`
-    Over a symfem reference cell (duck-typed; symfem is not imported).
-    Simplices are Duffy-collapsed by default.
 
 Closed-form rules
 -----------------
 A `Rule` integrates one variable over one range in closed form or
 declines (returns None). The registry `RULES` is consulted in order;
 `register_rule` / `unregister_rule` modify it, and ``integrate(...,
-rules=...)`` overrides it for one call. Built in:
+rules=...)`` overrides it for one call. Built in (context subpackages
+such as `symint.qc` add more):
 
 "gaussian" (`gaussian_rule`)
     int P(x) exp(-A x^2 + B x + C) dx over the whole line and half-lines
     (A provably positive) and over finite intervals (any A != 0; erfi-type
     results for A < 0), via erf plus a moment recurrence. This covers
     the Boys integral int_0^1 u^(2n) exp(-T u^2) du.
-"azimuthal" (`azimuthal_rule`)
-    Full periods of exp(A + k cos(phi) + m sin(phi)) -> 2 pi e^A I_0(M)
-    and of (A + k cos(phi) + m sin(phi))^(-1/2) -> 4 K(2M/(A+M))/sqrt(A+M),
-    the azimuthal part of 1/r12; M = sqrt(k^2 + m^2).
 "polynomial" (`polynomial_rule`)
     Polynomials over finite ranges (FEM integrands on affine or collapsed
     cells), by exact antiderivative.
@@ -120,7 +116,7 @@ Examples
 A Gaussian moment, with SymPy as the only back end:
 
 >>> import sympy as sp
->>> from symbolic_qc.symint import integrate
+>>> from symint import integrate
 >>> x = sp.Symbol("x", real=True); a = sp.Symbol("a", positive=True)
 >>> integrate(sp.Integral(x**2 * sp.exp(-a * x**2), (x, -sp.oo, sp.oo)),
 ...           algorithms=("sympy",))
@@ -128,7 +124,7 @@ sqrt(pi)/(2*a**(3/2))
 
 A moment on the reference triangle, with rules only:
 
->>> from symbolic_qc.symint import simplex_integral
+>>> from symint import simplex_integral
 >>> y = sp.Symbol("y", real=True)
 >>> integrate(simplex_integral(x**2 * y, (x, y)), algorithms=())
 1/60
@@ -140,7 +136,7 @@ Integral(exp(-a*x**4), (x, 0, 1))
 
 and can still be compiled, with quadrature for the remaining integral:
 
->>> from symbolic_qc.symint import compile_function, numpy_function
+>>> from symint import compile_function, numpy_function
 >>> f = compile_function(numpy_function(
 ...     "f", sp.Integral(sp.exp(-a * x**4), (x, 0, 1)), [a]))
 >>> round(float(f(1.0)), 8)
@@ -148,7 +144,7 @@ and can still be compiled, with quadrature for the remaining integral:
 
 A user-supplied rule, here for an otherwise unknown function g:
 
->>> from symbolic_qc.symint import Rule, register_rule, unregister_rule
+>>> from symint import Rule, register_rule, unregister_rule
 >>> g = sp.Function("g")
 >>> def g_rule(expr, var, bounds):
 ...     return sp.Integer(1) if expr == g(var) and bounds == [0, 1] else None
@@ -159,29 +155,28 @@ A user-supplied rule, here for an otherwise unknown function g:
 
 Dependencies
 ------------
-Required: SymPy. Code generation and the timeout fallback need NumPy and
-SciPy. Optional: passagemath with Maxima/FriCAS (CAS back ends), symfem
-(`symfem_integral` takes its reference cells, but symint does not import it).
-
-symint does not import the surrounding symbolic_qc package and is meant
-to be extracted into a package of its own.
+Required: SymPy and passagemath with Maxima/FriCAS (CAS back ends).
+Code generation and the timeout fallback need NumPy and SciPy.
 """
 
+__version__ = "0.1.0"
+
 from .codegen import compile_function, module_source, numpy_function
-from .domain import chart_integral, simplex_integral, symfem_integral
+from .domain import chart_integral, simplex_integral
 from .engine import (DEFAULT_ALGORITHMS, StepTimeout, integrate,
                      run_with_timeout)
 from .rewrite import TRANSFORMS
-from .rules import (RULES, Rule, apply_rules, azimuthal_rule, gaussian_rule,
-                    polynomial_rule, register_rule, unregister_rule)
+from .rules import (RULES, Rule, apply_rules, gaussian_rule, polynomial_rule,
+                    register_rule, unregister_rule)
 from .sage import from_sage, to_sage
 
 __all__ = [
-    "chart_integral", "simplex_integral", "symfem_integral",
+    "__version__",
+    "chart_integral", "simplex_integral",
     "integrate", "DEFAULT_ALGORITHMS", "TRANSFORMS", "StepTimeout",
     "run_with_timeout",
     "Rule", "RULES", "register_rule", "unregister_rule", "apply_rules",
-    "polynomial_rule", "gaussian_rule", "azimuthal_rule",
+    "polynomial_rule", "gaussian_rule",
     "to_sage", "from_sage",
     "numpy_function", "module_source", "compile_function",
 ]
