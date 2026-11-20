@@ -60,11 +60,12 @@ def _linear_in_cos_sin(expr: sp.Expr,
     e = sp.expand(e.subs(s ** 2, 1 - c ** 2))
     if e.has(var) or not e.is_polynomial(c, s):
         return None
-    poly = sp.Poly(e, c, s)
-    if poly.total_degree() > 1:
-        return None
-    return tuple(_pythagoras(poly.coeff_monomial(m))
-                 for m in ((0, 0), (1, 0), (0, 1)))
+    else:
+        poly = sp.Poly(e, c, s)
+        if poly.total_degree() > 1:
+            return None
+        return tuple(_pythagoras(poly.coeff_monomial(m))
+                    for m in ((0, 0), (1, 0), (0, 1)))
 
 
 def _amplitude(kappa: sp.Expr,
@@ -145,7 +146,9 @@ def _azimuthal_term(term: sp.Expr,
         if parts[1] == 0 and parts[2] == 0:
             rest *= sp.exp(parts[0])
             exponent = sp.Integer(0)
-    if (roots and exponent != 0) or len(roots) > 1:
+    if exponent == 0:
+        return rest * 2 * sp.pi
+    elif (roots and exponent != 0) or len(roots) > 1:
         return None
     if roots:
         parts = _linear_in_cos_sin(roots[0], var)
@@ -154,8 +157,6 @@ def _azimuthal_term(term: sp.Expr,
         A, kappa, mu = parts
         M = _amplitude(kappa, mu)
         return rest * 4 * sp.elliptic_k(2 * M / (A + M)) / sp.sqrt(A + M)
-    if exponent == 0:
-        return rest * 2 * sp.pi
     A, kappa, mu = _linear_in_cos_sin(exponent, var)
     return rest * 2 * sp.pi * sp.exp(A) * sp.besseli(0, _amplitude(kappa, mu))
 
@@ -194,10 +195,9 @@ def azimuthal_rule(expr: sp.Expr,
     >>> azimuthal_rule(sp.exp(k * sp.cos(phi)), phi)
     2*pi*besseli(0, k)
     """
-    total = sp.Integer(0)
-    for term in additive_terms(expr):
-        value = _azimuthal_term(term, var)
-        if value is None:
+    terms = list(additive_terms(expr))
+    for i, term in enumerate(terms):
+        terms[i] = _azimuthal_term(term, var)
+        if terms[i] is None:
             return None
-        total += value
-    return total
+    return sp.Add(*terms)
