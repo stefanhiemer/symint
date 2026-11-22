@@ -34,7 +34,7 @@ Issues = "https://github.com/stefanhiemer/symint/issues"
 # Executing generated code (compile_function) and quadrature for leftover integrals.
 numeric = ["numpy>=1.24", "scipy>=1.10"]
 all = ["symintegral[numeric]"]
-test = ["symintegral[numeric]", "pytest>=7"]
+test = ["symintegral[numeric]", "pytest>=7", "coverage"]
 docs = [
     "sphinx>=7.0",
     "sphinx-rtd-theme>=1.3",
@@ -51,6 +51,10 @@ version = { attr = "symintegral.__version__" }
 
 [tool.setuptools.package-data]
 symintegral = ["py.typed"]
+
+[tool.coverage.run]
+# measure the package only (not tests, examples or benchmarks)
+source = ["symintegral"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "symintegral"]
