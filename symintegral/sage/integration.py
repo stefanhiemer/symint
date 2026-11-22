@@ -9,7 +9,7 @@ from typing import Any, Sequence
 from .loader import sage
 from .questions import with_sign_cases
 
-CAS_ALGORITHMS = ("maxima", "fricas", "giac", "fricas_antiderivative")
+CAS_BACKENDS = ("maxima", "fricas", "giac", "fricas_antiderivative")
 ANTIDERIVATIVE = "fricas_antiderivative"
 
 
@@ -113,7 +113,7 @@ def has_unevaluated_integral(expr: Any) -> bool:
 
 def integrate_step(integrand: Any,
                    args: Sequence[Any],
-                   algorithm: str,
+                   backend: str,
                    limit_algorithm: str = "maxima") -> Any:
     """
     One Sage integration step.
@@ -124,8 +124,8 @@ def integrate_step(integrand: Any,
         Integrand.
     args : sequence
         ``(var,)`` or ``(var, lower, upper)`` as Sage expressions.
-    algorithm : str
-        One of `CAS_ALGORITHMS`. `ANTIDERIVATIVE` asks FriCAS for an
+    backend : str
+        One of `CAS_BACKENDS`. `ANTIDERIVATIVE` asks FriCAS for an
         antiderivative F and returns F(upper^-) - F(lower^+) via
         one-sided limits -- only valid if F is continuous on the interval.
     limit_algorithm : str, optional
@@ -138,9 +138,9 @@ def integrate_step(integrand: Any,
         integral.
     """
     sage_all = sage()
-    if algorithm != ANTIDERIVATIVE:
+    if backend != ANTIDERIVATIVE:
         return with_sign_cases(partial(sage_all.integrate, integrand, *args,
-                                       algorithm=algorithm))
+                                       algorithm=backend))
     var, *bounds = args
     F = sage_all.integrate(integrand, var, algorithm="fricas")
     if has_unevaluated_integral(F):

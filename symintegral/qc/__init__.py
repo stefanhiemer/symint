@@ -1,8 +1,8 @@
 """
-symint.qc -- quantum-chemistry extensions.
+symintegral.qc -- quantum-chemistry extensions.
 
 Importing this subpackage registers its closed-form rules in
-`symint.RULES`:
+`symintegral.RULES`:
 
 "azimuthal" (`azimuthal_rule`)
     Full periods of exp(A + k cos(phi) + m sin(phi)) (Bessel I_0) and of
@@ -10,11 +10,11 @@ Importing this subpackage registers its closed-form rules in
     part of 1/r12 in spherical or elliptic coordinates.
 
 >>> import sympy as sp
->>> import symint.qc
->>> from symint import integrate
+>>> import symintegral.qc
+>>> from symintegral import integrate
 >>> phi = sp.Symbol("phi", real=True); k = sp.Symbol("k", positive=True)
 >>> integrate(sp.Integral(sp.exp(k * sp.cos(phi)), (phi, 0, 2 * sp.pi)),
-...           algorithms=())
+...           backends=())
 2*pi*besseli(0, k)
 """
 

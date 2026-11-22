@@ -1,5 +1,5 @@
 """
-SymPy <-> Sage (passagemath) bridge for symint.
+SymPy <-> Sage (passagemath) bridge for symintegral.
 
 Submodules
 ----------
@@ -23,7 +23,7 @@ integrations done entirely by rules or SymPy never load it.
 
 from .assumptions import SageSession, limit_facts, symbol_facts
 from .convert import from_sage, to_sage
-from .integration import (ANTIDERIVATIVE, CAS_ALGORITHMS,
+from .integration import (ANTIDERIVATIVE, CAS_BACKENDS,
                           has_unevaluated_integral, integrate_step, simplify)
 from .loader import ensure_ecl_on_path, sage, sage_loaded
 from .questions import MAX_SIGN_CASES, with_sign_cases
@@ -33,6 +33,6 @@ __all__ = [
     "to_sage", "from_sage",
     "symbol_facts", "limit_facts", "SageSession",
     "MAX_SIGN_CASES", "with_sign_cases",
-    "CAS_ALGORITHMS", "ANTIDERIVATIVE", "simplify",
+    "CAS_BACKENDS", "ANTIDERIVATIVE", "simplify",
     "has_unevaluated_integral", "integrate_step",
 ]

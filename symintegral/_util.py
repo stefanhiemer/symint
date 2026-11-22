@@ -1,5 +1,5 @@
 """
-_util.py -- small helpers shared by the symint modules.
+_util.py -- small helpers shared by the symintegral modules.
 
 - `additive_terms`: split an integrand into terms, distributing products
   only, so that exponentials stay intact for the rules;

@@ -1,16 +1,19 @@
 [build-system]
-requires = ["setuptools>=69", "wheel"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "symint"
+name = "symintegral"
 dynamic = ["version"]
 description = "Closed-form evaluation of multidimensional SymPy integrals, with NumPy/SciPy code generation."
 readme = "README.md"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
 requires-python = ">=3.10"
 authors = [{ name = "Stefan Hiemer", email = "stefan.hiemer1995@gmail.com" }]
 keywords = ["sympy", "integration", "symbolic", "computer algebra", "quantum chemistry", "finite elements"]
 classifiers = [
+    "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3",
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Mathematics",
@@ -22,21 +25,32 @@ dependencies = [
     "passagemath-repl",
 ]
 
+[project.urls]
+Repository = "https://github.com/stefanhiemer/symint"
+Issues = "https://github.com/stefanhiemer/symint/issues"
+
 [project.optional-dependencies]
 # Executing generated code (compile_function) and quadrature for leftover integrals.
 numeric = ["numpy>=1.24", "scipy>=1.10"]
-all = ["symint[numeric]"]
-test = ["symint[numeric]", "pytest>=7"]
+all = ["symintegral[numeric]"]
+test = ["symintegral[numeric]", "pytest>=7"]
+docs = [
+    "sphinx>=7.0",
+    "sphinx-rtd-theme>=1.3",
+    "myst-parser>=2.0",
+    "sphinx-autodoc-typehints",
+]
+pypi = ["build", "twine"]
 
 [tool.setuptools.packages.find]
-include = ["symint*"]
+include = ["symintegral*"]
 
 [tool.setuptools.dynamic]
-version = { attr = "symint.__version__" }
+version = { attr = "symintegral.__version__" }
 
 [tool.setuptools.package-data]
-symint = ["py.typed"]
+symintegral = ["py.typed"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "symint"]
+testpaths = ["tests", "symintegral"]
 addopts = "--doctest-modules"

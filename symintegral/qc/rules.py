@@ -146,7 +146,7 @@ def _azimuthal_term(term: sp.Expr,
         if parts[1] == 0 and parts[2] == 0:
             rest *= sp.exp(parts[0])
             exponent = sp.Integer(0)
-    if exponent == 0:
+    if exponent == 0 and not roots:
         return rest * 2 * sp.pi
     elif (roots and exponent != 0) or len(roots) > 1:
         return None

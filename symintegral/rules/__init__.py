@@ -10,7 +10,7 @@ A rule is worth writing if at least one of these holds:
    and, for Maxima/FriCAS, the round trip through Sage.
 2. Back-end gaps. Some closed forms the back ends often miss or find
    only with help, e.g. the azimuthal Bessel/elliptic-K integrals of
-   `symint.qc`, or Gaussians whose coefficient has a sign SymPy cannot
+   `symintegral.qc`, or Gaussians whose coefficient has a sign SymPy cannot
    prove (`_util.is_positive`), where Maxima asks sign questions.
 3. Usable results. Back-end results can be long (e.g. erf terms that
    cancel); a rule returns a compact form built in SymPy, keeping the
@@ -37,7 +37,7 @@ polynomial
 
 Both built-in rules are registered on import, in that order.
 Context-specific rules live in context subpackages and are registered
-when those are imported (e.g. ``import symint.qc`` adds "azimuthal").
+when those are imported (e.g. ``import symintegral.qc`` adds "azimuthal").
 """
 
 from .._util import is_finite_range

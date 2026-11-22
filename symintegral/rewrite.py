@@ -4,13 +4,14 @@ rewrite.py -- exact rewrites of integrands before integration.
 - Completing the square in Gaussian exponents (`gaussian_shift`,
   `common_shift`, `complete_square`), so that rules and CAS see
   exp(-c (x - s)^2) instead of exp(-c x^2 + b x).
-- Integral transforms of inverse distances (`apply_transform`): factors
-  Q^(-nu/2), Q quadratic in the integration variables, are replaced by
-  an integral over a new variable whose integrand is Gaussian
-  ("gaussian", Boys), exponential ("laplace") or a plane wave
-  ("fourier") in Q, which makes the spatial integrals tractable.
-- The Boys substitution (`boys_substitute`) of the leftover transform
-  variable onto [0, 1], giving the Boys-function form of the result.
+- Integral transforms (`apply_transform`): factors Q^(-nu/2), Q
+  quadratic in the integration variables (e.g. ``1/|r1 - r2|``), couple the
+  variables. They are replaced by an integral over a new variable whose
+  integrand is Gaussian ("gaussian"), exponential ("laplace") or a plane
+  wave ("fourier") in Q, after which the original variables decouple.
+- The substitution of the leftover transform variable from [0, oo) onto
+  [0, 1] (`boys_substitute`); in quantum chemistry this gives the
+  Boys-function form of the result, hence the name.
 """
 
 from functools import partial
@@ -21,6 +22,7 @@ from sympy import Symbol
 
 from ._util import additive_terms, fresh, is_exp, tidy_exponent
 
+#: Valid values of ``integrate(..., transform=...)``.
 TRANSFORMS = ("gaussian", "laplace", "fourier")
 
 Limits = List[Tuple]
@@ -184,7 +186,8 @@ def inverse_distance_factors(term: sp.Expr,
                              variables: Set[Symbol]
                              ) -> List[Tuple[sp.Expr, sp.Expr, sp.Expr]]:
     """
-    Inverse-distance factors of a product.
+    Factors Q^(-nu/2) of a product, Q quadratic in `variables`
+    (inverse distances and their powers).
 
     Parameters
     ----------
@@ -219,9 +222,9 @@ def _fourier_factor(base: sp.Expr,
                     nu: sp.Expr,
                     taken: Set[str]) -> Tuple[sp.Expr, Limits]:
     """
-    Fourier representation of 1/|l| in spherical k coordinates.
+    Fourier representation of ``1/|l|`` in spherical k coordinates.
 
-    1/|l| = 1/(2 pi^2) int d^3k exp(i k.l)/k^2, with d^3k/k^2 =
+    ``1/|l|`` = 1/(2 pi^2) int d^3k exp(i k.l)/k^2, with d^3k/k^2 =
     sin(theta_k) dphi_k dtheta_k dkappa.
 
     Parameters
@@ -257,7 +260,7 @@ def transform_factor(base: sp.Expr,
                      mode: str,
                      taken: Set[str]) -> Tuple[sp.Expr, Limits]:
     """
-    Integral representation of one inverse-distance factor.
+    Integral representation of one factor Q^(-nu/2).
 
     Parameters
     ----------
@@ -266,9 +269,9 @@ def transform_factor(base: sp.Expr,
     nu : sp.Expr
         Exponent: the factor is Q**(-nu/2).
     mode : {"gaussian", "laplace", "fourier"}
-        "gaussian": 2/Gamma(nu/2) int_0^oo t^(nu-1) exp(-t^2 Q) dt (Boys);
+        "gaussian": 2/Gamma(nu/2) int_0^oo t^(nu-1) exp(-t^2 Q) dt;
         "laplace": 1/Gamma(nu/2) int_0^oo s^(nu/2-1) exp(-s Q) ds;
-        "fourier": only 1/|l| (see `_fourier_factor`).
+        "fourier": only ``1/|l|`` (see `_fourier_factor`).
     taken : set of str
         Symbol names in use; updated with the new variables' names.
 
@@ -295,7 +298,7 @@ def apply_transform(expr: sp.Expr,
                     mode: str,
                     taken: Set[str]) -> List[Tuple[sp.Expr, Limits]]:
     """
-    Replace inverse-distance factors by integral representations.
+    Replace factors Q^(-nu/2) by integral representations.
 
     Works term by term; the same factor in different terms gets the same
     new variables. Terms with the same set of factors are collected into
@@ -317,7 +320,7 @@ def apply_transform(expr: sp.Expr,
     list of (integrand, outer_limits)
         Pieces whose integrals (over `limits` first, then their
         `outer_limits`) sum to the original integral. Terms without
-        inverse distances have no outer limits.
+        such factors have no outer limits.
     """
     variables = {lim[0] for lim in limits}
     replacements: Dict[sp.Expr, Tuple[sp.Expr, Limits]] = {}
@@ -342,10 +345,10 @@ def boys_parameter(term: sp.Expr,
                    var: Symbol,
                    mode: str) -> sp.Expr:
     """
-    The parameter p of the Boys substitution.
+    The parameter p of the substitution onto [0, 1] (`boys_substitute`).
 
-    After the spatial integrals, a Gaussian-transformed term contains
-    powers of (p + t^2) ("gaussian") or (p + s) ("laplace").
+    After the original variables are integrated, a transformed term
+    contains powers of (p + t^2) ("gaussian") or (p + s) ("laplace").
 
     Parameters
     ----------

@@ -36,6 +36,7 @@ class Rule:
     evaluate: Callable[[sp.Expr, Symbol, Bounds], Optional[sp.Expr]]
 
 
+#: The rule registry, consulted first to last by `apply_rules`.
 RULES: List[Rule] = []
 
 
