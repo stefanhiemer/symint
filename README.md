@@ -1,5 +1,8 @@
 # symintegral
 
+[![PyPI](https://img.shields.io/pypi/v/symintegral)](https://pypi.org/project/symintegral/)
+[![Documentation](https://readthedocs.org/projects/symintegral/badge/?version=latest)](https://symintegral.readthedocs.io/en/latest/)
+
 This is my personal library for symbolic integration. SymPy is my go-to 
 python package for symbolic computing, but unfortunately slow on
 multidimensional integrals and often fails to evaluate them. I started 
@@ -121,7 +124,8 @@ This runs the tests in `tests/` and the doctests in the package.
 
 ## Documentation
 
-The documentation is built with Sphinx:
+The documentation is online at https://symintegral.readthedocs.io. To
+build it locally with Sphinx:
 
 ```bash
 pip install -e ".[docs]"

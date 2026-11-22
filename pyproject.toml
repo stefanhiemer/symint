@@ -26,6 +26,7 @@ dependencies = [
 ]
 
 [project.urls]
+Documentation = "https://symintegral.readthedocs.io"
 Repository = "https://github.com/stefanhiemer/symint"
 Issues = "https://github.com/stefanhiemer/symint/issues"
 
