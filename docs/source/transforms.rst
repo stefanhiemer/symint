@@ -1,11 +1,26 @@
-Coupled integrands: transforms
-==============================
+Non-separable Integrands and Useful Transforms
+==============================================
 
-Separation needs factors that share no variables. A factor like
-:math:`1/|r_1 - r_2|` couples all six coordinates, so it would block
-separation of the whole integral. ``transform=`` replaces factors
-:math:`Q^{-\nu/2}`, :math:`Q` quadratic in the integration variables, by
-an integral representation over a new outer variable :math:`t`:
+Separation (:doc:`pipeline`) only helps if the integrand is a product
+of factors that each depend on different variables, thus a single mixed 
+factor prevents it, e.g. in
+
+.. math::
+
+   \int\!\!\int \frac{e^{-x^2 - y^2}}{\sqrt{1 + (x - y)^2}}\,dx\,dy
+
+the Gaussians would separate into an x-part and a y-part, but the root
+stops this.
+
+Such factors are common and often have the form :math:`Q^{-\nu/2}`, with
+:math:`Q` a quadratic polynomial in the integration variables
+(:math:`Q = 1 + (x - y)^2`, :math:`\nu = 1` above).
+
+``transform=`` rewrites such a factor as an integral over a new outer
+variable :math:`t`, in which the variables appear only in an
+exponential :math:`e^{-t^2 Q}`. For fixed :math:`t` this is a Gaussian
+in the original variables, and the Gaussians separate. The available 
+representations:
 
 ``"gaussian"``
    .. math::
@@ -23,11 +38,12 @@ an integral representation over a new outer variable :math:`t`:
 
 After the transform the original variables appear only in Gaussians, so
 separation and the Gaussian rule apply. The outer variable is integrated
-last; with ``substitute_outer=True`` (default) the Gaussian and Laplace
+last. With ``substitute_outer=True`` (default) the Gaussian and Laplace
 forms are first mapped onto :math:`[0, 1]` by
 :math:`u^2 = t^2/(p + t^2)`.
 
-Example: the Coulomb interaction of two Gaussian charge distributions.
+Example: the electrostatic interaction of two Gaussian charge
+distributions, where :math:`1/|r_1 - r_2|` mixes all six coordinates.
 
 .. literalinclude:: ../../examples/03_coulomb_gaussians.py
    :language: python

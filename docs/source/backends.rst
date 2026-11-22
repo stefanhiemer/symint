@@ -24,7 +24,7 @@ On a benchmark of 33 integrals with known closed forms
 (``benchmarks/known_integrals.py``), Maxima solves most, FriCAS some of
 the rest (e.g. the Dirichlet integral), and SymPy several that both miss
 (Beta function, Frullani, complete elliptic K). Giac added nothing on
-that benchmark. Run it yourself with
+that benchmark:
 
 .. code-block:: bash
 
@@ -33,7 +33,7 @@ that benchmark. Run it yourself with
 Each back end gets its own copy of the prepared integrand: the Sage back
 ends receive the Sage-simplified one (``simplify="full"`` or
 ``"radical"``), SymPy the unsimplified one, since Sage's simplified form
-can defeat SymPy.
+can cause SymPy to fail.
 
 Assumptions
 -----------

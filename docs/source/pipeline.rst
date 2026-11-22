@@ -1,5 +1,5 @@
-How integration works
-=====================
+Integration Pipeline: how integrals are simplified and evaluated
+================================================================
 
 `~symintegral.engine.pipeline.integrate` runs these stages for each integral. Each can be
 switched off or configured with a keyword argument.
@@ -7,12 +7,13 @@ switched off or configured with a keyword argument.
 1. Transform (optional)
 -----------------------
 
-``transform="gaussian"``, ``"laplace"`` or ``"fourier"``. Factors
+``transform="gaussian"``, ``"laplace"`` or ``"fourier"``. A factor
 :math:`Q^{-\nu/2}`, with :math:`Q` quadratic in the integration
-variables, couple the variables: :math:`1/|r_1 - r_2|` in Coulomb or
-gravitational kernels is the typical case. The transform replaces such a
-factor by an integral over a new *outer* variable, after which the
-original variables appear only in Gaussians and decouple. For example
+variables, mixes the variables, so the integrand does not factorise
+(inverse distances :math:`1/|r_1 - r_2|` are the typical case). The
+transform replaces such a factor by an integral over a new *outer*
+variable, after which the original variables appear only in Gaussians,
+which do factorise. For example
 
 .. math::
 
@@ -25,10 +26,10 @@ See :doc:`transforms`.
 2. Separation
 -------------
 
-``separate=True`` (default). On a rectangular domain (no limit depends
-on another integration variable) the integrand is expanded and each
-term split into factors that share no variables, so the integral becomes
-a sum of products of lower-dimensional integrals:
+On a rectangular domain (no limit depends on another integration variable) 
+the integrand is expanded and each term split into factors that share no 
+variables, so the integral becomes a sum of products of lower-dimensional 
+integrals:
 
 .. math::
 
@@ -41,7 +42,15 @@ Every distinct factor is evaluated once and cached, so
 
 Domains that are not rectangular are integrated iteratively, innermost
 variable first. Simplices can be made rectangular with
-`~symintegral.domain.simplex_integral` (see below).
+`~symintegral.domain.simplex_integral` (see below). 
+
+Separation is triggered by ``separate=True`` (default) whenever all
+limits are constant. 
+
+Known issue: a convergent integral can still be split into terms that 
+diverge on their own (e.g. 
+Frullani's :math:`\int_0^\infty (e^{-ax} - e^{-bx})/x\,dx`),
+which currently gives ``nan``; pass ``separate=False`` for such integrals.
 
 3. One variable at a time
 -------------------------

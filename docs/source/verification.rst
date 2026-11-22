@@ -1,8 +1,7 @@
 Checking results
 ================
 
-`~symintegral.verify` checks results independently of how they were
-obtained.
+`~symintegral.verify` checks results.
 
 Antiderivatives
 ---------------
@@ -12,14 +11,23 @@ Antiderivatives
 whole is slow and sometimes inconclusive, so the check works in stages
 and stops at the first that decides:
 
-1. **Grouping.** :math:`r` is expanded and its terms are sorted by their
-   transcendental factors: the product of factors that are not rational
-   in :math:`x`, such as :math:`e^{-a x^2}`, :math:`\log(1+x)` or
-   :math:`\operatorname{erf}(x)`. Exponentials are split first
-   (:math:`e^{(x-b)^2} = e^{x^2} e^{-2bx} e^{b^2}`) and radicals reduced
-   to one fractional power of their base, so the same factor written
-   differently lands in the same group. Each group's rational
-   coefficient is cancelled separately.
+1. **Grouping.** The terms of :math:`r` are handled as follows:
+
+   - exponentials split to one factor per term of the exponent,
+     :math:`e^{(x-b)^2} = e^{x^2} e^{-2bx} e^{b^2}`;
+   - radicals reduced to one fractional power of their base,
+     e.g. :math:`(1+x^2)^{3/2} = (1+x^2)\,(1+x^2)^{1/2}`;
+   - :math:`r` is expanded into a sum of terms;
+   - terms sorted to groups by their transcendental factors:
+
+     - transcendental factor: the product of all factors not rational in :math:`x`;
+     - examples: :math:`e^{-a x^2}`, :math:`\log(1+x)`,
+       :math:`\operatorname{erf}(x)`;
+     - the first two steps make sure the same factor written differently
+       lands in the same group;
+
+   - the rational coefficients within each group are added and cancelled,
+     one group at a time.
 2. **Common denominator.** What remains is put over a common
    denominator and its numerator grouped again. This handles
    transcendental denominators such as :math:`1/(1 + e^x)`.

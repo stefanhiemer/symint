@@ -1,18 +1,34 @@
 # symintegral
 
-Closed-form evaluation of multidimensional SymPy integrals.
+This is my personal library for symbolic integration. SymPy is my go-to 
+python package for symbolic computing, but unfortunately slow on
+multidimensional integrals and often fails to evaluate them. I started 
+looking for lightweight packages to operate on sympy integrals, but found
+only large general purpose symbolic packages like SAGE. Thus I created  
+this package for my personal use as fusion of routines created in other 
+projects, such as [topoptlab](https://github.com/stefanhiemer/topoptlab). 
 
-symintegral takes an unevaluated `sympy.Integral` and evaluates it as far as
-possible in closed form. It never hands the whole integral to a computer
-algebra system. Instead it rewrites the integral and splits it into small
-one-variable problems. Fast closed-form rules handle these where they can,
-and SymPy, Maxima or FriCAS handle the rest. Anything it cannot evaluate
-stays a SymPy `Integral`, so you get a partial result instead of an
-exception. `numpy_function` can turn that partial result into NumPy/SciPy
+A word of caution: this is not meant to be a complete or bullet-proof
+integration library. It covers the integrals I need in my own work, and
+it is developed as far as that requires. Expect gaps, and check results
+that matter to you (e.g. with `check_definite`). Known failures are
+collected in `benchmarks/LIBRARY_OF_SHAME.md`.
+
+`symintegral` tries to find closed-form evaluation of multidimensional 
+SymPy integrals by taking an unevaluated `sympy.Integral` and evaluating 
+it as far as possible in closed form. Several simplification strategies 
+are in place:
+
+- rewrite the integral and splits it into small one-variable problems
+- closed-form rules for specific integrals for speed
+- use SymPy, Maxima or FriCAS to handle complex problems. 
+
+Anything that cannot be solved stays a SymPy `Integral` as a partial 
+result. `numpy_function` can turn that partial result into NumPy/SciPy 
 code that uses quadrature for the remaining integrals.
 
-The core package is general-purpose. Code tied to a particular
-application lives in context subpackages, which you enable by importing
+The core package is general-purpose, but code tied to particular
+applications live in context subpackages, which you enable by importing
 them:
 
 | Subpackage | Adds |
@@ -65,26 +81,31 @@ f(1.0)  # 0.8448385947...
 
 Pass `log=[]` to `integrate` to see which rule or back end handled each
 step. You can add your own closed-form rules with `register_rule`. The
-documentation (see below, or `help(symintegral)`) describes the full pipeline,
-the domains and the back ends.
+documentation (see below, or `help(symintegral)`) describes the full 
+pipeline, the domains and the back ends.
 
 ## Checking results
 
-`check_antiderivative(F, f, x)` checks dF/dx = f. It sorts the residual into
-groups by its transcendental factors (exponentials split, radicals reduced)
-and cancels each group's rational coefficient separately, so exact
-cancellations are found without a full `simplify`. Only what survives is
-simplified, and as a last resort tested numerically. The result says which
-stage decided (`"groups"`, `"simplify"`, `"numeric"`).
-`check_definite(result, integral)` compares a definite result with numerical
-quadrature.
+`check_antiderivative(F, f, x)` checks dF/dx = f. It sorts the residual 
+into groups by its transcendental factors (exponentials split, radicals 
+reduced) and cancels each group's rational coefficient separately, so 
+exact cancellations are found without a full `simplify`. Only what 
+survives is simplified, and as a last resort tested numerically. The 
+result says which stage decided (`"groups"`, `"simplify"`, `"numeric"`).
+`check_definite(result, integral)` compares a definite result with 
+numerical quadrature.
 
 ## Examples and benchmark
 
-`examples/` contains runnable scripts: Gaussian moments, FEM element
-matrices with code generation, the Coulomb integral of two Gaussians,
-partial results evaluated by quadrature, a user-defined rule, result
-checking, and the quantum-chemistry rules.
+`examples/` contains runnable scripts: 
+
+- Gaussian moments
+- FEM element matrices with code generation
+- the Coulomb integral of two Gaussians,
+- partial results evaluated by quadrature 
+- creation/application of a user-defined rule
+- result checking 
+- quantum-chemistry specific rules.
 
 `benchmarks/known_integrals.py` runs symintegral on integrals with known closed
 forms and reports for each whether the result is exact, only numerically

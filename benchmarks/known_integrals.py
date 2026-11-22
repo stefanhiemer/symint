@@ -120,7 +120,7 @@ def _numeric_equal(expr, known, fixed, samples=3, tol=1e-8):
             k = complex(sp.N(known.subs(vals), 25))
         except (TypeError, ValueError):
             return False
-        if abs(d) > tol * max(1.0, abs(k)):
+        if not abs(d) <= tol * max(1.0, abs(k)):  # also rejects nan
             return False
     return True
 
