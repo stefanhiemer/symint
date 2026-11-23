@@ -3,7 +3,7 @@
 [![PyPI](https://img.shields.io/pypi/v/symintegral)](https://pypi.org/project/symintegral/)
 [![Documentation](https://readthedocs.org/projects/symintegral/badge/?version=latest)](https://symintegral.readthedocs.io/en/latest/)
 [![CI](https://github.com/stefanhiemer/symint/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/stefanhiemer/symint/actions/workflows/ci.yaml)
-[![Coverage](https://img.shields.io/badge/coverage-87%25-brightgreen)](#)
+[![Coverage](https://img.shields.io/badge/coverage-88%25-brightgreen)](#)
 
 This is my personal library for symbolic integration. SymPy is my go-to 
 python package for symbolic computing, but unfortunately slow on
