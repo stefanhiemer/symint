@@ -42,6 +42,16 @@ echo "symintegral $VERSION"
 
 # --- checks ---------------------------------------------------------------
 
+step "Checking the tools"
+missing=()
+for module in pytest build twine; do
+    "$PYTHON" -c "import $module" 2>/dev/null || missing+=("$module")
+done
+if [ "${#missing[@]}" -gt 0 ]; then
+    fail "$PYTHON lacks ${missing[*]}; run: pip install -e \".[pypi,test]\""
+fi
+echo "ok ($("$PYTHON" -c 'import sys; print(sys.executable)'))"
+
 step "Checking the working tree"
 if [ -n "$(git status --porcelain)" ]; then
     git status --short
