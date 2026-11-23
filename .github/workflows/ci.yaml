@@ -20,4 +20,6 @@ jobs:
       # passagemath (Maxima/FriCAS) is a required dependency, so this is
       # a large install; the pip cache speeds up later runs
       - run: pip install .[test]
-      - run: pytest -q
+      # python -m pytest (not plain pytest): imports the package from the
+      # checkout, matching the doctests collected from it
+      - run: python -m pytest -q
