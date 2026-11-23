@@ -178,7 +178,7 @@ Required: SymPy and passagemath with Maxima/FriCAS (CAS back ends).
 Code generation and the timeout fallback need NumPy and SciPy.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 from .codegen import compile_function, module_source, numpy_function
 from .domain import chart_integral, simplex_integral

@@ -142,10 +142,12 @@ xdg-open build/html/index.html
 `scripts/release.sh` does all of the steps below: it checks for
 uncommitted changes and already-uploaded versions, runs the tests,
 builds, uploads to TestPyPI, tests the install from there in a fresh
-environment, and asks before the final PyPI upload. Bump `__version__`
-in `symintegral/__init__.py` first.
+environment, and asks before the final PyPI upload. Bump the version
+first and commit:
 
 ```bash
+scripts/bump_version.py patch   # 0.1.0 -> 0.1.1 (or minor, major, X.Y.Z)
+git commit -am "Release 0.1.1"
 pip install -e ".[pypi,test]"
 scripts/release.sh --dry-run    # checks and build only, no upload
 scripts/release.sh              # TestPyPI, install test, then PyPI
