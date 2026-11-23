@@ -31,7 +31,9 @@ base
     `unregister_rule` and `apply_rules`.
 gaussian
     "gaussian" (`gaussian_rule`): int P(x) exp(-A x^2 + B x + C) dx over
-    the whole line, half-lines and finite intervals.
+    the whole line, half-lines and finite intervals, and the same with
+    linear exponents (A = 0), including Slater-type
+    int_0^oo x^n exp(-k x) dx.
 polynomial
     "polynomial" (`polynomial_rule`): polynomials over finite ranges.
 

@@ -139,6 +139,20 @@ xdg-open build/html/index.html
 
 ## Building and uploading to PyPI
 
+`scripts/release.sh` does all of the steps below: it checks for
+uncommitted changes and already-uploaded versions, runs the tests,
+builds, uploads to TestPyPI, tests the install from there in a fresh
+environment, and asks before the final PyPI upload. Bump `__version__`
+in `symintegral/__init__.py` first.
+
+```bash
+pip install -e ".[pypi,test]"
+scripts/release.sh --dry-run    # checks and build only, no upload
+scripts/release.sh              # TestPyPI, install test, then PyPI
+```
+
+The manual steps:
+
 ```bash
 pip install -e ".[pypi]"
 rm -rf dist/

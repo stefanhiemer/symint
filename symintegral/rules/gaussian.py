@@ -1,7 +1,14 @@
 """
-"gaussian" rule: moments int P(x) exp(-A x^2 + B x + C) dx over the
-whole line, half-lines and finite intervals, via erf plus a moment
-recurrence. Covers the Boys integral int_0^1 u^(2n) exp(-T u^2) du.
+"gaussian" rule: polynomials times exponentials of quadratic or linear
+exponents.
+
+- Gaussians, int P(x) exp(-A x^2 + B x + C) dx, over the whole line,
+  half-lines and finite intervals, via erf plus a moment recurrence.
+  Covers the Boys integral int_0^1 u^(2n) exp(-T u^2) du.
+- Linear exponents, int P(x) exp(B x + C) dx, over half-lines (Gamma
+  functions, e.g. the Slater-type int_0^oo x^n exp(-k x) dx =
+  Gamma(n + 1)/k^(n + 1), n also symbolic) and finite intervals (exact
+  antiderivative).
 """
 
 from typing import List, Optional, Tuple
@@ -103,14 +110,18 @@ def _interval_moments(A: sp.Expr,
 
 
 def _split_gaussian(term: sp.Expr,
-                    var: Symbol) -> Optional[Tuple[sp.Expr, sp.Expr]]:
+                    var: Symbol) -> Optional[Tuple[sp.Expr, sp.Expr, sp.Expr]]:
     """
-    Split a term into polynomial prefactor and Gaussian exponent,
+    Split a term into a power of `var`, a polynomial prefactor and an
+    exponent,
 
-        term = prefactor(var) * exp(exponent(var)),
+        term = var^power * prefactor(var) * exp(exponent(var)),
 
-    where prefactor is a polynomial in `var` (other symbols allowed) and
-    exponent is quadratic in `var`. Terms not of this form give None.
+    where prefactor is a polynomial in `var` (other symbols allowed),
+    exponent is quadratic or linear in `var`, and power collects the
+    factors var^s whose exponent s is not a nonnegative integer (symbolic,
+    fractional or negative; 0 if there are none). Terms not of this form
+    give None.
 
     Parameters
     ----------
@@ -121,25 +132,113 @@ def _split_gaussian(term: sp.Expr,
 
     Returns
     -------
-    (prefactor, exponent) or None
-        With term = prefactor * exp(exponent), `prefactor` polynomial and
-        `exponent` a quadratic polynomial in `var`; None otherwise.
+    (power, prefactor, exponent) or None
+        As above; None otherwise.
     """
-    exponent, prefactor = sp.Integer(0), sp.Integer(1)
-    # exp(..var..) into exponent, everything else to prefactor
+    exponent, power, prefactor = sp.Integer(0), sp.Integer(0), sp.Integer(1)
+    # exp(..var..) into exponent, var**s (s not a nonnegative integer)
+    # into power, everything else to prefactor
     for f in sp.Mul.make_args(sp.powsimp(term, combine="exp")):
+        base, exp_ = f.as_base_exp()
         if isinstance(f, sp.exp) and f.has(var):
             exponent += f.args[0]
+        elif base == var and not (exp_.is_Integer and exp_ >= 0):
+            power += exp_
         else:
             prefactor *= f
     exponent = sp.expand(exponent)
     #
     if not (exponent.is_polynomial(var) and prefactor.is_polynomial(var)):
         return None
-    elif sp.Poly(exponent, var).degree() != 2:
+    elif sp.Poly(exponent, var).degree() not in (1, 2):
         return None
     else:
-        return prefactor, exponent
+        return power, prefactor, exponent
+
+
+def _exponential_term(power: sp.Expr,
+                      prefactor: sp.Expr,
+                      B: sp.Expr,
+                      C: sp.Expr,
+                      var: Symbol,
+                      lo: sp.Expr,
+                      hi: sp.Expr) -> Optional[sp.Expr]:
+    """
+    Integrate one term with a linear exponent,
+
+        int_lo^hi var^power * prefactor(var) * exp(B var + C) dvar,
+
+    with prefactor a polynomial in `var` (see `_split_gaussian`):
+
+    - [lo, oo), B provably negative, k = -B: with y = var - lo and
+      prefactor(y + lo) = sum_m c_m y^m,
+      exp(B lo + C) sum_m c_m m!/k^(m + 1).
+    - (-oo, hi], B provably positive: the mirror image, y = hi - var.
+    - [0, oo) with power != 0 (e.g. symbolic n in x^n), power + 1
+      provably positive:
+      exp(C) sum_m c_m Gamma(power + m + 1)/k^(power + m + 1).
+    - finite [lo, hi], B not zero, power 0: the exact antiderivative
+      exp(B x) sum_m (-1)^m P^(m)(x)/B^(m + 1) of P(x) exp(B x).
+
+    Parameters
+    ----------
+    power : sp.Expr
+        Exponent of the extra factor var^power (0 if none).
+    prefactor : sp.Expr
+        Polynomial in `var`.
+    B, C : sp.Expr
+        Coefficients of the exponent B var + C.
+    var : Symbol
+        Integration variable.
+    lo, hi : sp.Expr
+        Interval ends, possibly -oo / oo.
+
+    Returns
+    -------
+    sp.Expr or None
+        The integral, or None if the sign conditions cannot be proven,
+        the range is the whole line, or a non-polynomial power is
+        combined with a range other than [0, oo).
+    """
+    if lo.is_infinite and hi.is_infinite:
+        return None  # diverges for every B != 0
+    # var^power with power not a nonnegative integer: only [0, oo)
+    elif power != 0:
+        if not (lo == 0 and hi == sp.oo and is_positive(-B)
+                and is_positive(power + 1)):
+            return None
+        k = -B
+        poly = sp.Poly(prefactor, var)
+        return sp.exp(C) * sum(
+            c * sp.gamma(power + m + 1) / k ** (power + m + 1)
+            for (m,), c in poly.terms())
+    # half-lines: Gamma integrals int_0^oo y^m exp(-k y) dy = m!/k^(m+1)
+    elif hi == sp.oo or lo == -sp.oo:
+        if hi == sp.oo:
+            k, end, y_of = -B, lo, (lambda y: y + lo)
+        else:
+            k, end, y_of = B, hi, (lambda y: hi - y)
+        if not is_positive(k):
+            return None
+        y = sp.Dummy("y", real=True)
+        shifted = sp.Poly(sp.expand(prefactor.subs(var, y_of(y))), y)
+        return sp.exp(sp.expand(B * end + C)) * sum(
+            c * sp.factorial(m) / k ** (m + 1)
+            for (m,), c in shifted.terms())
+    # finite interval: exact antiderivative (generic in B, B = 0 removable)
+    elif B == 0 or B.is_zero:
+        return None
+    else:
+        poly = sp.Poly(prefactor, var)
+        derivatives, d = [], poly
+        while not d.is_zero:
+            derivatives.append(d)
+            d = d.diff(var)
+        def antiderivative(t):
+            return sp.exp(B * t) * sum((-1) ** m * dm.as_expr().subs(var, t)
+                                       / B ** (m + 1)
+                                       for m, dm in enumerate(derivatives))
+        return sp.exp(C) * (antiderivative(hi) - antiderivative(lo))
 
 
 def _gaussian_term(term: sp.Expr,
@@ -176,7 +275,13 @@ def _gaussian_term(term: sp.Expr,
     split = _split_gaussian(term, var)
     if split is None:
         return None
-    prefactor, exponent = split
+    power, prefactor, exponent = split
+    # exponent linear in var: no Gaussian, see _exponential_term
+    if sp.Poly(exponent, var).degree() == 1:
+        B, C = [sp.cancel(c) for c in sp.Poly(exponent, var).all_coeffs()]
+        return _exponential_term(power, prefactor, B, C, var, lo, hi)
+    elif power != 0:
+        return None
     # exponent = -A var^2 + B var + C
     minus_A, B, C = [sp.cancel(c)
                      for c in sp.Poly(exponent, var).all_coeffs()]
@@ -206,13 +311,20 @@ def gaussian_rule(expr: sp.Expr,
                   var: Symbol,
                   bounds: Bounds = None) -> Optional[sp.Expr]:
     """
-    Integral of polynomials times Gaussians, term by term.
+    Integral of polynomials times Gaussians or exponentials, term by term.
 
     int P(x) exp(-A x^2 + B x + C) dx over the whole line and half-lines
     (A provably positive) and over finite intervals (A not identically
     zero; generic in A, the A -> 0 limit is removable) -- e.g. the Boys
     integral int_0^1 u^(2n) exp(-T u^2) du for any sign of T. See
     `_gaussian_term`.
+
+    Linear exponents (A = 0), int P(x) exp(B x + C) dx, over half-lines
+    (decaying: B provably negative on [lo, oo), positive on (-oo, hi])
+    and finite intervals (B not identically zero). On [0, oo) a factor
+    x^s with symbolic or fractional s is allowed if s + 1 is provably
+    positive: Slater-type integrals int_0^oo x^n exp(-k x) dx =
+    Gamma(n + 1)/k^(n + 1). See `_exponential_term`.
 
     Parameters
     ----------
@@ -234,6 +346,9 @@ def gaussian_rule(expr: sp.Expr,
     >>> x = sp.Symbol("x", real=True); a = sp.Symbol("a", positive=True)
     >>> gaussian_rule(x**2 * sp.exp(-a * x**2), x)
     sqrt(pi)/(2*a**(3/2))
+    >>> n = sp.Symbol("n", nonnegative=True)
+    >>> gaussian_rule(x**n * sp.exp(-a * x), x, (0, sp.oo))
+    a**(-n - 1)*gamma(n + 1)
     """
     if bounds is None or is_whole_line(bounds):
         lo, hi = -sp.oo, sp.oo

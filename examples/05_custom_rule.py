@@ -1,7 +1,8 @@
 """A user rule: Slater-type radial moments int_0^oo x^n exp(-c x) dx.
 
-The built-in Gaussian rule needs a quadratic exponent; this rule covers
-linear ones on [0, oo) with symbolic n, returning Gamma(n + 1)/c^(n + 1).
+The built-in "gaussian" rule covers these integrals too; this example
+shows how such a rule is written and registered. Registered with
+first=True, it is tried before the built-in rules, so the log names it.
 """
 
 import sympy as sp

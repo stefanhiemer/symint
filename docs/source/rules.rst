@@ -32,6 +32,18 @@ Built-in rules
    ``erfi``-type results for :math:`A < 0`), via ``erf`` and a moment
    recurrence.
 
+   Also linear exponents (:math:`A = 0`),
+   :math:`\int P(x)\, e^{B x + C}\,dx`: over half-lines when the
+   exponential provably decays, as sums of Gamma functions, and over
+   finite intervals by the exact antiderivative. On :math:`[0, \infty)`
+   an extra factor :math:`x^s` with symbolic or fractional :math:`s` is
+   allowed (:math:`s + 1` provably positive), which covers Slater-type
+   integrals
+
+   .. math::
+
+      \int_0^\infty x^n e^{-k x}\,dx = \frac{\Gamma(n+1)}{k^{n+1}}.
+
 ``"polynomial"`` (`~symintegral.rules.polynomial.polynomial_rule`)
    Polynomials over finite ranges, by their exact antiderivative: FEM
    integrands on affine or collapsed cells.

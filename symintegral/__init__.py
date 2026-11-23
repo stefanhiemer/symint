@@ -69,7 +69,10 @@ such as `symintegral.qc` add more):
     int P(x) exp(-A x^2 + B x + C) dx over the whole line and half-lines
     (A provably positive) and over finite intervals (any A != 0; erfi-type
     results for A < 0), via erf plus a moment recurrence. This covers
-    the Boys integral int_0^1 u^(2n) exp(-T u^2) du.
+    the Boys integral int_0^1 u^(2n) exp(-T u^2) du. Also linear
+    exponents: int P(x) exp(B x + C) dx over half-lines (decaying) and
+    finite intervals, and the Slater-type int_0^oo x^n exp(-k x) dx =
+    Gamma(n + 1)/k^(n + 1) with symbolic n.
 "polynomial" (`polynomial_rule`)
     Polynomials over finite ranges (FEM integrands on affine or collapsed
     cells), by exact antiderivative.
